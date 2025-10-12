@@ -1,0 +1,50 @@
+# ========== Global / Namespace ==========
+global:
+  namespace: monitoring
+
+# ========== kube-prometheus-stack (alias: kps) ==========
+kps:
+  fullnameOverride: kps
+  defaultRules:
+    create: true
+
+  alertmanager:
+    enabled: true
+
+  grafana:
+    enabled: true
+    service:
+      type: ClusterIP
+    adminPassword: "admin"
+
+  prometheus:
+    enabled: true
+    prometheusSpec:
+      retention: 15d
+      walCompression: true
+      enableAdminAPI: false
+
+  kubeApiServer:
+    enabled: true
+  kubeControllerManager:
+    enabled: true
+  kubeScheduler:
+    enabled: true
+  kubeEtcd:
+    enabled: true
+  kubeProxy:
+    enabled: true
+  kubeStateMetrics:
+    enabled: true
+  nodeExporter:
+    enabled: true
+
+contracts:
+  grafana:
+    adminSecretName: "grafana-admin"
+  datasources:
+    enabled: false
+  logs:
+    toLoki: false
+  traces:
+    toTempo: false

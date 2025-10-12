@@ -1,0 +1,14 @@
+apiVersion: v2
+name: monitoring-stack
+description: Umbrella chart for Cloud Native Observability - Monitoring (kube-prometheus-stack as the core)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/shtsukada/cloudnative-observability-monitoring
+
+#Umbrella 依存チャート(latest禁止)
+dependencies:
+  - name: kube-prometheus-stack
+    alias: kps
+    repository: https://prometheus-community.github.io/helm-charts
+    version: 66.0.0
