@@ -1,6 +1,7 @@
 # cloudnative-observability-monitoring
 
-Prometheus / Alertmanager / Grafana / Loki / Tempo などの **監視・可観測性スタック** を Helm で提供します。
+Cloud Native Observability の **Monitoring** リポジトリ。
+Umbrella Helm Chart（`charts/monitoring-stack`）を用いて Prometheus / Grafana / Alertmanager を中核に構築します。
 
 ## 成果物
 
@@ -28,7 +29,10 @@ charts/
 ## Quickstart
 
 ```bash
-helm install monitoring oci://ghcr.io/YOUR_ORG/cloudnative-observability-monitoring --version X.Y.Z
+make deps
+make lint
+make template
+make install
 ```
 
 ## MVP

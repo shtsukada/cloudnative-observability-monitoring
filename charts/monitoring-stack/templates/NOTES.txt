@@ -1,0 +1,13 @@
+Cloud Native Observability - Monitoring (Umbrella)
+
+Namespace: {{ .Values.global.namespace | default "monitoring" }}
+
+Included in this branch:
+- kube-prometheus-stack (Prometheus, Alertmanager, Grafana, exporters)
+
+Next branches:
+- datasources-auto: GrafanaにPrometheus/Loki/Tempoを自動登録
+- loki-tempo-otelcol: ログ→Loki/OTLP→Tempoの導線
+- servicemonitors-podmonitors:監視対象(Operator/App/ArgoCD等)を収集
+- dashboards-min/alerts-min:最小ダッシュボード/アラート
+- security-netpolicy:NetworkPolicy最小許可
