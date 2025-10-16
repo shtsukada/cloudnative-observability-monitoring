@@ -1,54 +1,119 @@
 {
-  "$schema": "https://json-schema.org/draft-07/schema#",
-  "title": "monitoring-stack values",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "monitoring-stack values schema",
   "type": "object",
   "properties": {
     "global": {
-      "type":"object",
+      "type": "object",
       "properties": {
-        "namespace": { "type": "string", "minLength": 1 }
+        "namespace": { "type": "string", "default": "monitoring" }
       },
+      "additionalProperties": true
+    },
+    "contracts": {
+      "type": "object",
+      "properties": {
+        "grafana": {
+          "type": "object",
+          "properties": {
+            "adminSecretName": { "type": "string", "default": "grafana-admin" }
+          },
+          "additionalProperties": true
+        },
+        "datasources": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean", "default": true },
+            "loki": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "pattern": "^https?://",
+                  "default": "http://loki.monitoring.svc:3100"
+                }
+              },
+              "required": ["url"],
+              "additionalProperties": false
+            },
+            "tempo": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "pattern": "^https?://",
+                  "default": "http://tempo.monitoring.svc:3200"
+                }
+              },
+              "required": ["url"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["enabled", "loki", "tempo"],
+          "additionalProperties": false
+        },
+        "logs": {
+          "type": "object",
+          "properties": {
+            "toLoki": { "type": "boolean", "default": false }
+          },
+          "additionalProperties": true
+        },
+        "traces": {
+          "type": "object",
+          "properties": {
+            "toTempo": { "type": "boolean", "default": false }
+          },
+          "additionalProperties": true
+        }
+      },
+      "required": ["datasources"],
       "additionalProperties": true
     },
     "kps": {
       "type": "object",
-      "description": "kube-prometheus-stack values passthrough",
-      "additionalProperties": true
-    },
-    "contracts": {
-      "type":"object",
+      "description": "Alias of kube-prometheus-stack; only minimal keys validated to stay compatible with upstream.",
       "properties": {
         "grafana": {
-          "type":"object",
+          "type": "object",
           "properties": {
-            "adminSecretName": { "type":"string" }
+            "enabled": { "type": "boolean", "default": true },
+            "defaultDatasourceEnabled": { "type": "boolean", "default": true },
+            "service": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "enum": ["ClusterIP", "NodePort", "LoadBalancer"], "default": "ClusterIP" },
+                "nodePort": { "type": "integer", "minimum": 1 }
+              },
+              "additionalProperties": true
+            },
+            "adminPassword": { "type": "string" },
+            "additionalDataSources": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "uid": { "type": "string" },
+                  "type": { "type": "string" },
+                  "access": { "type": "string" },
+                  "url": { "type": "string", "pattern": "^https?://" },
+                  "isDefault": { "type": "boolean" },
+                  "jsonData": { "type": "object" }
+                },
+                "required": ["name", "type", "url"],
+                "additionalProperties": true
+              },
+              "default": []
+            }
           },
-          "additionalProperties":false
+          "additionalProperties": true
         },
-        "datasources": {
-          "type":"object",
-          "properties": {
-            "enabled": { "type":"boolean" }
-          },
-          "additionalProperties": false
-        },
-        "logs": {
-          "type":"object",
-          "properties": {
-            "toLoki": { "type":"boolean"}
-          },
-          "additionalProperties": false
-        },
-        "traces": {
-          "type":"object",
-          "properties": {
-            "toTempo": { "type": "boolean" }
-          },
-          "additionalProperties": false
-        }
+        "prometheus": { "type": "object", "additionalProperties": true },
+        "alertmanager": { "type": "object", "additionalProperties": true }
       },
-      "additionalProperties": false
+      "additionalProperties": true
     }
   },
-  "additionalProperties": false
+  "additionalProperties": true
 }

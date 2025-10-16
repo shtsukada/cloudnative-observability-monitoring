@@ -1,3 +1,17 @@
+# ========== Contracts ==========
+contracts:
+  grafana:
+    adminSecretName: "grafana-admin"
+  datasources:
+    enabled: true
+    loki:
+      url: &loki_url "http://loki.monitoring.svc:3100"
+    tempo:
+      url: &tempo_url "http://tempo.monitoring.svc:3200"
+  logs:
+    toLoki: false
+  traces:
+    toTempo: false
 # ========== Global / Namespace ==========
 global:
   namespace: monitoring
@@ -16,6 +30,33 @@ kps:
     service:
       type: ClusterIP
     adminPassword: "admin"
+
+    defaultDatasourceEnabled: true
+
+    additionalDataSources:
+      - name: Loki
+        uid: loki
+        type: loki
+        access: proxy
+        url: *loki_url
+        isDefault: false
+        jsonData: {}
+      - name: Tempo
+        uid: tempo
+        type: tempo
+        access: proxy
+        url: *tempo_url
+        isDefault: false
+        jsonData:
+          httpMethod: GET
+          serviceMap:
+            datasourceUid: prometheus
+          tracesToLogsV2:
+            datasourceUid: loki
+            spanStartTimeShift: "1h"
+            spanEndTimeShift: "1h"
+          lokiSearch:
+            datasourceUid: loki
 
   prometheus:
     enabled: true
@@ -38,13 +79,3 @@ kps:
     enabled: true
   nodeExporter:
     enabled: true
-
-contracts:
-  grafana:
-    adminSecretName: "grafana-admin"
-  datasources:
-    enabled: false
-  logs:
-    toLoki: false
-  traces:
-    toTempo: false
