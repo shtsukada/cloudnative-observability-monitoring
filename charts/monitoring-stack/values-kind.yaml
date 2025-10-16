@@ -1,6 +1,14 @@
 global:
   namespace: monitoring
 
+contracts:
+  datasources:
+    enabled: true
+    loki:
+      url: "http://loki.monitoring.svc:3100"
+    tempo:
+      url: "http://tempo.monitoring.svc:3200"
+
 kps:
   grafana:
     enabled: true
