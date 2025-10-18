@@ -2,8 +2,8 @@ apiVersion: v2
 name: monitoring-stack
 description: Umbrella chart for Cloud Native Observability - Monitoring (kube-prometheus-stack as the core)
 type: application
-version: 0.1.0
-appVersion: "0.1.0"
+version: 0.2.0
+appVersion: "0.2.0"
 home: https://github.com/shtsukada/cloudnative-observability-monitoring
 
 #Umbrella 依存チャート(latest禁止)
@@ -12,3 +12,20 @@ dependencies:
     alias: kps
     repository: https://prometheus-community.github.io/helm-charts
     version: 66.0.0
+    condition: kps.enabled
+  - name: loki
+    version: ">=5.0.0 <10.0.0"
+    repository: "https://grafana.github.io/helm-charts"
+    alias: loki
+    condition: loki.enabled
+  - name: tempo
+    version: ">=1.0.0 <3.0.0"
+    repository: "https://grafana.github.io/helm-charts"
+    alias: tempo
+    condition: tempo.enabled
+  - name: opentelemetry-collector
+    version: ">=0.86.0 <1.0.0"
+    repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"
+    alias: otelcol
+    condition: otelcol.enabled
+

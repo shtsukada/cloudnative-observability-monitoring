@@ -1,0 +1,17 @@
+{
+  "resourceLogs": [{
+    "resource": {
+      "attributes": [
+        {"key":"service.name","value":{"stringValue":"smoketest-logs"}},
+        {"key":"service.instance.id","value":{"stringValue":"manual-test"}}
+      ]
+    },
+    "scopeLogs": [{
+      "logRecords": [{
+        "timeUnixNano": "1730000000000000000",
+        "severityText": "INFO",
+        "body": {"stringValue":"hello from otlp smoke test"}
+      }]
+    }]
+  }]
+}
