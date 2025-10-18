@@ -19,3 +19,15 @@ kps:
     enabled: true
   alertmanager:
     enabled: true
+
+loki:
+  service:
+    type: ClusterIP
+  simpleScalable:
+    replicas: 0
+
+tempo:
+  enabled: true
+
+otelcol:
+  replicaCount: 1
