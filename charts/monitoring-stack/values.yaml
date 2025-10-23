@@ -222,3 +222,65 @@ otelcol:
         endpoint: 0.0.0.0:13133
       pprof: {}
       zpages: {}
+
+monitors:
+  prometheus:
+    namespace: monitoring
+    labels:
+      release: cno-mon
+
+  common:
+    scrapeInterval: 30s
+    scrapeTimeout: 10s
+    scheme: http
+
+  operators:
+    enabled: true
+    targets:
+      - name: cno-operator
+        kind: ServiceMonitor
+        namespace: cno-operator
+        selector:
+          matchLabels:
+            app.kubernetes.io/name: cno-operator
+        endpoints:
+          - port: http-metrics
+            path: /metrics
+            interval: 30s
+
+  apps:
+    enabled: true
+    targets:
+      - name: grafana
+        kind: ServiceMonitor
+        namespace: monitoring
+        selector:
+          matchLabels:
+            app.kubernetes.io/name: grafana
+        endpoints:
+          - port: http
+            path: /metrics
+
+  argocd:
+    enabled: true
+    namespace: argocd
+    targets:
+      - name: argocd-server
+        kind: PodMonitor
+        namespace: argocd
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: argocd-server
+        endpoints:
+          - port: metrics
+            path: /metrics
+      - name: argocd-repo-server
+        kind: PodMonitor
+        namespace: argocd
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: argocd-repo-server
+        endpoints:
+          - port: metrics
+            path: /metrics
+
