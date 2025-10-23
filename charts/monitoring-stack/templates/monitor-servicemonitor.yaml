@@ -1,0 +1,79 @@
+{{- $root := . -}}
+{{- $cmn := .Values.monitors.common | default dict -}}
+{{- $prom := .Values.monitors.prometheus | default dict -}}
+{{- $sections := dict "operators" .Values.monitors.operators "apps" .Values.monitors.apps "argocd" .Values.monitors.argocd -}}
+
+{{- range $section, $cfg := $sections }}
+{{- if and $cfg $cfg.enabled }}
+{{- range $t := $cfg.targets }}
+{{- $kind := default "ServiceMonitor" $t.kind -}}
+{{- $isSvcMon := or (eq (lower $kind) "servicemonitor") (and (not $t.kind) $t.selector) -}}
+{{- if $isSvcMon }}
+{{- $ns := default $cfg.namespace $t.namespace -}}
+{{- printf "---\n" -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "monitoring-stack.fullname" $root }}-{{ $section }}-{{ $t.name }}
+  labels:
+    {{- with $prom.labels }}{{ toYaml . | nindent 4 }}{{- end }}
+    {{- with $t.additionalLabels }}{{ toYaml . | nindent 4 }}{{- end }}
+spec:
+  {{- if $ns }}
+  namespaceSelector:
+    matchNames:
+      - {{ $ns }}
+  {{- else }}
+  namespaceSelector: {}
+  {{- end }}
+  selector:
+    {{- with $t.selector }}{{ toYaml . | nindent 4 }}{{- else }}matchLabels: {}{{- end }}
+  endpoints:
+    {{- range $e := $t.endpoints }}
+    -
+      {{- if $e.port }}
+      port: {{ $e.port }}
+      {{- end }}
+      {{- if $e.targetPort }}
+      targetPort: {{ $e.targetPort }}
+      {{- end }}
+      {{- if $e.path }}
+      path: {{ $e.path }}
+      {{- else if $cmn.path }}
+      path: {{ $cmn.path }}
+      {{- end }}
+      {{- if $e.scheme }}
+      scheme: {{ $e.scheme }}
+      {{- else if $cmn.scheme }}
+      scheme: {{ $cmn.scheme }}
+      {{- end }}
+      {{- if $e.interval }}
+      interval: {{ $e.interval }}
+      {{- else if $cmn.scrapeInterval }}
+      interval: {{ $cmn.scrapeInterval }}
+      {{- end }}
+      {{- if $e.scrapeTimeout }}
+      scrapeTimeout: {{ $e.scrapeTimeout }}
+      {{- else if $cmn.scrapeTimeout }}
+      scrapeTimeout: {{ $cmn.scrapeTimeout }}
+      {{- end }}
+      {{- with (default $cmn.relabelings $e.relabelings) }}
+      relabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with (default $cmn.metricRelabelings $e.metricRelabelings) }}
+      metricRelabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if or $e.tlsConfig $cmn.tlsConfig }}
+      tlsConfig:
+        {{- toYaml (default $cmn.tlsConfig $e.tlsConfig) | nindent 8 }}
+      {{- end }}
+      {{- if $e.sampleLimit }}
+      sampleLimit: {{ $e.sampleLimit }}
+      {{- end }}
+    {{ end }}
+{{ end }}
+{{- end }}
+{{- end }}
+{{- end }}

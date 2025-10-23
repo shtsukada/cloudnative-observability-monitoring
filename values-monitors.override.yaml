@@ -1,0 +1,21 @@
+monitors:
+  argocd:
+    enabled: true
+    namespace: argocd
+    targets:
+      - name: argocd-server
+        kind: PodMonitor
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: argocd-server
+        endpoints:
+          - port: metrics          # ← targetPortではなく port に統一
+            path: /metrics
+      - name: argocd-repo-server
+        kind: PodMonitor
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: argocd-repo-server
+        endpoints:
+          - port: metrics
+            path: /metrics
