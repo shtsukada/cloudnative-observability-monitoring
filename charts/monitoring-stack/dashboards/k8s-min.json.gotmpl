@@ -1,0 +1,71 @@
+{
+  "uid": "{{ .dashboard.uid }}",
+  "title": "Kubernetes — Minimal",
+  "tags": ["cno","minimal","k8s"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "templating": {
+    "list": [
+      {
+        "type": "query",
+        "name": "namespace",
+        "label": "Namespace",
+        "query": "label_values(kube_pod_info, namespace)",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {"selected": true, "text": "All", "value": ".*"},
+        "refresh": 2,
+        "datasource": { "type": "prometheus", "uid": "{{ default `prometheus` .Values.dashboards.datasourceUid }}" }
+      },
+      {
+        "type": "query",
+        "name": "pod",
+        "label": "Pod",
+        "query": "label_values(kube_pod_info{namespace=~\"$namespace\"}, pod)",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {"selected": true, "text": "All", "value": ".*"},
+        "refresh": 2,
+        "datasource": { "type": "prometheus", "uid": "{{ default `prometheus` .Values.dashboards.datasourceUid }}" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Nodes Ready",
+      "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
+      "targets": [{ "expr": "sum(kube_node_status_condition{condition=\"Ready\",status=\"true\"})" }]
+    },
+    {
+      "type": "time_series",
+      "title": "CPU (namespace)",
+      "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
+      "targets": [{ "expr": "sum(rate(container_cpu_usage_seconds_total{container!=\"\",namespace=~\"$namespace\"}[5m])) by (namespace)" }]
+    },
+    {
+      "type": "time_series",
+      "title": "Memory Working Set (namespace)",
+      "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
+      "targets": [{ "expr": "sum(container_memory_working_set_bytes{container!=\"\",namespace=~\"$namespace\"}) by (namespace)" }]
+    },
+    {
+      "type": "time_series",
+      "title": "Pod Restarts (5m, by namespace)",
+      "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
+      "targets": [{ "expr": "sum(increase(kube_pod_container_status_restarts_total{namespace=~\"$namespace\"}[5m])) by (namespace)" }]
+    },
+    {
+      "type": "time_series",
+      "title": "Pods Running / Pending (by namespace)",
+      "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
+      "targets": [
+        { "expr": "sum(kube_pod_status_phase{phase=\"Running\",namespace=~\"$namespace\"}) by (namespace)", "legendFormat": "running" },
+        { "expr": "sum(kube_pod_status_phase{phase=\"Pending\",namespace=~\"$namespace\"}) by (namespace)", "legendFormat": "pending" }
+      ]
+    }
+  ]
+}

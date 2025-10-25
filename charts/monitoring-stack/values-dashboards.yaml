@@ -1,0 +1,11 @@
+dashboards:
+  enabled: true
+  folder: "CNO Minimal"
+  datasourceUid: "prometheus"
+  items:
+    - name: k8s-min
+      uid: cno-k8s-min
+    - name: operator-min
+      uid: cno-operator-min
+    - name: grpc-app-min
+      uid: cno-grpc-min

@@ -1,0 +1,19 @@
+{{- if and .Values.dashboards .Values.dashboards.enabled }}
+{{- $folder := default "CNO Minimal" .Values.dashboards.folder }}
+{{- $items := default (list) .Values.dashboards.items }}
+{{- range $d := $items }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "monitoring-stack.fullname" $ }}-dashboard-{{ $d.name }}
+  labels:
+    grafana_dashboard: "1"
+    {{- include "monitoring-stack.labels" $ | nindent 4 }}
+  annotations:
+    grafana_folder: {{ $folder | quote }}
+data:
+  {{ $d.name }}.json: |
+{{ tpl ($.Files.Get (printf "dashboards/%s.json.gotmpl" $d.name)) (dict "Values" $.Values "dashboard" $d) | indent 4 }}
+---
+{{- end }}
+{{- end }}

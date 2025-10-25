@@ -1,0 +1,46 @@
+{
+  "uid": "{{ .dashboard.uid }}",
+  "title": "Operator/Prometheus — Minimal",
+  "tags": ["cno","minimal","operator"],
+  "schemaVersion": 38,
+  "version": 1,
+  "templating": {
+    "list": [
+      {
+        "type": "query",
+        "name": "job",
+        "label": "Job",
+        "query": "label_values(up, job)",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {"selected": true, "text": "All", "value": ".*"},
+        "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "time_series",
+      "title": "Target Health (up by job)",
+      "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
+      "targets": [{ "expr": "avg by (job) (up{job=~\"$job\"})" }]
+    },
+    {
+      "type": "time_series",
+      "title": "Rule Evaluation Duration (p95)",
+      "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(prometheus_rule_evaluation_duration_seconds_bucket[5m])) by (le))" }
+      ]
+    },
+    {
+      "type": "time_series",
+      "title": "Controller Reconcile Errors (5m rate, by controller)",
+      "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
+      "targets": [
+        { "expr": "sum(rate(controller_runtime_reconcile_total{result=\"error\"}[5m])) by (controller)" }
+      ]
+    }
+  ]
+}
