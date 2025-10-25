@@ -1,0 +1,71 @@
+{
+  "uid": "{{ .dashboard.uid }}",
+  "title": "gRPC App — Minimal",
+  "tags": ["cno","minimal","grpc"],
+  "schemaVersion": 38,
+  "version": 1,
+  "templating": {
+    "list": [
+      {
+        "type": "query",
+        "name": "namespace",
+        "label": "Namespace",
+        "query": "label_values(grpc_server_handled_total, namespace)",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {"selected": true, "text": "All", "value": ".*"},
+        "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" }
+      },
+      {
+        "type": "query",
+        "name": "pod",
+        "label": "Pod",
+        "query": "label_values(grpc_server_handled_total{namespace=~\"$namespace\"}, pod)",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {"selected": true, "text": "All", "value": ".*"},
+        "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "time_series",
+      "title": "RPS (by service/method)",
+      "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
+      "targets": [
+        { "expr": "sum by (grpc_service, grpc_method) (rate(grpc_server_started_total{namespace=~\"$namespace\",pod=~\"$pod\"}[1m]))" }
+      ]
+    },
+    {
+      "type": "time_series",
+      "title": "Latency (p95 / p99)",
+      "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(grpc_server_handling_seconds_bucket{namespace=~\"$namespace\",pod=~\"$pod\"}[5m])))", "legendFormat": "p95" },
+        { "expr": "histogram_quantile(0.99, sum by (le) (rate(grpc_server_handling_seconds_bucket{namespace=~\"$namespace\",pod=~\"$pod\"}[5m])))", "legendFormat": "p99" }
+      ]
+    },
+    {
+      "type": "time_series",
+      "title": "Error Rate",
+      "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
+      "targets": [
+        {
+          "expr": "sum(rate(grpc_server_handled_total{code!=\"OK\",namespace=~\"$namespace\",pod=~\"$pod\"}[5m])) / clamp_min(sum(rate(grpc_server_handled_total{namespace=~\"$namespace\",pod=~\"$pod\"}[5m])), 1e-9)",
+          "legendFormat": "error_rate"
+        }
+      ]
+    },
+    {
+      "type": "time_series",
+      "title": "Status Codes (by code)",
+      "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
+      "targets": [
+        { "expr": "sum by (code) (rate(grpc_server_handled_total{namespace=~\"$namespace\",pod=~\"$pod\"}[5m]))" }
+      ]
+    }
+  ]
+}
