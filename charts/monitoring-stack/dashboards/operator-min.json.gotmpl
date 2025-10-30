@@ -21,13 +21,13 @@
   },
   "panels": [
     {
-      "type": "time_series",
+      "type": "timeseries",
       "title": "Target Health (up by job)",
       "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
       "targets": [{ "expr": "avg by (job) (up{job=~\"$job\"})" }]
     },
     {
-      "type": "time_series",
+      "type": "timeseries",
       "title": "Rule Evaluation Duration (p95)",
       "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
       "targets": [
@@ -35,7 +35,7 @@
       ]
     },
     {
-      "type": "time_series",
+      "type": "timeseries",
       "title": "Controller Reconcile Errors (5m rate, by controller)",
       "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
       "targets": [

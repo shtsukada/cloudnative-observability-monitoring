@@ -1,0 +1,80 @@
+{{- if .Values.alerts.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "monitoring-stack.fullname" . }}-alerts-min
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "monitoring-stack.labels" . | nindent 4 }}
+    release: {{ .Release.Name }}
+spec:
+  groups:
+    - name: grpc.rules
+      rules:
+        - alert: GRPCHighErrorRate
+          expr: |
+            (
+              sum(rate(grpc_server_handled_total{code!="OK"}[5m]))
+              /
+              sum(rate(grpc_server_handled_total[5m]))
+            ) > {{ .Values.alerts.thresholds.grpcErrorRate | default 0.05 }}
+            and
+            sum(rate(grpc_server_handled_total[5m])) > 0
+          for: {{ .Values.alerts.durations.grpcErrorRate | default "10m" }}
+          labels:
+            severity: {{ .Values.alerts.severities.grpcErrorRate | default "warning" | quote }}
+            team: {{ .Values.alerts.labels.team | default "cno" | quote }}
+            service: {{ .Values.alerts.labels.grpcService | default "grpc" | quote }}
+          annotations:
+            summary: "gRPC error rate is high"
+            description: >
+              gRPC server error rate over last 5m exceeds threshold
+              (>{{ .Values.alerts.thresholds.grpcErrorRate }}). Check recent deploys and dependencies.
+        - alert: GRPCLatencyP95High
+          expr: |
+            histogram_quantile(
+              0.95,
+              sum by (le) (rate(grpc_server_handling_seconds_bucket[5m]))
+            ) > {{ .Values.alerts.thresholds.grpcP95 | default 0.2 }}
+          for: {{ .Values.alerts.durations.grpcP95 | default "10m" }}
+          labels:
+            severity: {{ .Values.alerts.severities.grpcP95 | default "warning" | quote }}
+            team: {{ .Values.alerts.labels.team | default "cno" | quote }}
+            service: {{ .Values.alerts.labels.grpcService | default "grpc" | quote }}
+          annotations:
+            summary: "gRPC p95 latency is high"
+            description: >
+              95th percentile gRPC handling latency over last 5m exceeds threshold
+              (>{{ .Values.alerts.thresholds.grpcP95 }}s). Investigate resource pressure and upstream latency.
+    - name: k8s.rules
+      rules:
+        - alert: PodRestartBurst
+          expr: |
+            sum by (namespace) (
+              increase(kube_pod_container_status_restarts_total[5m])
+            ) > {{ .Values.alerts.thresholds.podRestartBurst | default 3 }}
+          for: {{ .Values.alerts.durations.podRestartBurst | default "10m" }}
+          labels:
+            severity: {{ .Values.alerts.severities.podRestartBurst | default "warning" | quote }}
+            team: {{ .Values.alerts.labels.team | default "cno" | quote }}
+            service: {{ .Values.alerts.labels.k8sService | default "k8s" | quote }}
+          annotations:
+            summary: "Pod restart burst detected"
+            description: >
+              Pod restarts increased sharply in the last 5m. Look for CrashLoopBackOff, OOMKilled, or image pull issues.
+    - name: targets.rules
+      rules:
+        - alert: ScrapeTargetsDown
+          expr: |
+            sum by (job) (max_over_time(up[5m]) == 0)
+              >= {{ .Values.alerts.thresholds.minTargetsDown | default 1 }}
+          for: {{ .Values.alerts.durations.minTargetsDown | default "5m" }}
+          labels:
+            severity: {{ .Values.alerts.severities.minTargetsDown | default "critical" | quote }}
+            team: {{ .Values.alerts.labels.team | default "cno" | quote }}
+            service: {{ .Values.alerts.labels.operatorService | default "operator" | quote }}
+          annotations:
+            summary: "One or more scrape targets are down"
+            description: >
+              At least {{ .Values.alerts.thresholds.minTargetsDown | default 1 }} target(s) have been down for 5m.
+{{- end }}

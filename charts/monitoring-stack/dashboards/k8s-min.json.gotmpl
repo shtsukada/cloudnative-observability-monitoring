@@ -41,25 +41,25 @@
       "targets": [{ "expr": "sum(kube_node_status_condition{condition=\"Ready\",status=\"true\"})" }]
     },
     {
-      "type": "time_series",
+      "type": "timeseries",
       "title": "CPU (namespace)",
       "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
       "targets": [{ "expr": "sum(rate(container_cpu_usage_seconds_total{container!=\"\",namespace=~\"$namespace\"}[5m])) by (namespace)" }]
     },
     {
-      "type": "time_series",
+      "type": "timeseries",
       "title": "Memory Working Set (namespace)",
       "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
       "targets": [{ "expr": "sum(container_memory_working_set_bytes{container!=\"\",namespace=~\"$namespace\"}) by (namespace)" }]
     },
     {
-      "type": "time_series",
+      "type": "timeseries",
       "title": "Pod Restarts (5m, by namespace)",
       "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
       "targets": [{ "expr": "sum(increase(kube_pod_container_status_restarts_total{namespace=~\"$namespace\"}[5m])) by (namespace)" }]
     },
     {
-      "type": "time_series",
+      "type": "timeseries",
       "title": "Pods Running / Pending (by namespace)",
       "datasource": { "type":"prometheus","uid":"{{ default `prometheus` .Values.dashboards.datasourceUid }}" },
       "targets": [

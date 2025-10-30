@@ -36,13 +36,3 @@ helm repo update
 
 helm dependency update charts/monitoring-stack
 helm upgrade --install monitoring-stack charts/monitoring-stack -n monitoring --create-namespace
-
-
-
-
-
-
-
-
-
-
