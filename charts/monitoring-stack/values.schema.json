@@ -168,6 +168,83 @@
         }
       },
       "additionalProperties": false
+    },
+    "alerts": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "labels": {
+          "type":"object",
+          "properties": {
+            "team": { "type": "string" },
+            "grpcService": { "type": "string" },
+            "k8sService": { "type": "string" },
+            "operatorService": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "thresholds": {
+          "type": "object",
+          "properties": {
+            "grpcErrorRate": {"type": "number", "minimum": 0, "maximum": 1 },
+            "grpcP95": { "type": "number", "minimum": 0 },
+            "podRestartBurst": { "type": "integer", "minimum": 0 },
+            "minTargetsDown": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "durations": {
+          "type": "object",
+          "properties": {
+            "grpcErrorRate": {"type": "string", "pattern": "^[0-9]+(ms|s|m|h)$" },
+            "grpcP95": { "type": "string", "pattern": "^[0-9]+(ms|s|m|h)$" },
+            "podRestartBurst": { "type": "string", "pattern": "^[0-9]+(ms|s|m|h)$" },
+            "minTargetsDown": { "type": "string", "pattern": "^[0-9]+(ms|s|m|h)$" }
+          },
+          "additionalProperties": false
+        },
+        "severities": {
+          "type": "object",
+          "properties": {
+            "grpcErrorRate": {"type": "string", "enum": ["info","warning","critical"] },
+            "grpcP95": {"type": "string", "enum": ["info","warning","critical"] },
+            "podRestartBurst": {"type": "string", "enum": ["info","warning","critical"] },
+            "minTargetsDown": {"type": "string", "enum": ["info","warning","critical"] }
+          },
+          "additionalProperties": false
+        },
+        "alertmanager": {
+          "type": "object",
+          "properties": {
+            "mode": {"type": "string", "enum": ["inline","secret"] },
+            "group_wait": {"type": "string", "pattern": "^[0-9]+(ms|s|m|h)$" },
+            "group_interval": {"type": "string", "pattern": "^[0-9]+(ms|s|m|h)$" },
+            "repeat_interval": {"type": "string", "pattern": "^[0-9]+(ms|s|m|h)$" }
+          },
+          "additionalProperties": false
+        },
+        "slack":{
+          "type": "object",
+          "properties": {
+            "webhookUrlSecret":{
+              "type":"object",
+              "properties": {
+                "name": {"type": "string"},
+                "key": {"type": "string"}
+              },
+              "required": ["name","key"],
+              "additionalProperties": false
+            },
+            "channel": {"type": "string"},
+            "username":{"type": "string"},
+            "sendResolved": {"type": "boolean"}
+          },
+          "required": ["webhookUrlSecret"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["enabled","thresholds","labels","slack"],
+      "additionalProperties": true
     }
   },
   "definitions": {

@@ -284,3 +284,43 @@ monitors:
           - port: metrics
             path: /metrics
 
+alerts:
+  enabled: false
+
+  labels:
+    team: cno
+    grpcService: grpc
+    k8sService: k8s
+    operatorService: operator
+
+  thresholds:
+    grpcErrorRate: 0.05
+    grpcP95: 0.20
+    podRestartBurst: 3
+    minTargetsDown: 1
+
+  durations:
+    grpcErrorRate: 10m
+    grpcP95: 10m
+    podRestartBurst: 10m
+    minTargetsDown: 5m
+
+  severities:
+    grpcErrorRate: warning
+    grpcP95: warning
+    podRestartBurst: warning
+    minTargetsDown: critical
+
+  alertmanager:
+    mode: inline
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 1h
+
+  slack:
+    webhookUrlSecret:
+      name: slack-webhook
+      key: url
+    channel: "#observability"
+    username: "Alertmanager"
+    sendResolved: true

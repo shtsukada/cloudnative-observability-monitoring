@@ -1,0 +1,45 @@
+{{- if and .Values.alerts.enabled (eq .Values.alerts.alertmanager.mode "secret") -}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "monitoring-stack.fullname" . }}-alertmanager-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "monitoring-stack.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  alertmanager.yaml: |
+    route:
+      receiver: slack
+      group_by: ['alertname','job','namespace']
+      group_wait: {{ .Values.alerts.alertmanager.group_wait | default "30s" }}
+      group_interval: {{ .Values.alerts.alertmanager.group_interval | default "5m" }}
+      repeat_interval: {{ .Values.alerts.alertmanager.repeat_interval | default "1h" }}
+      routes:
+        - matchers:
+            - 'team={{ .Values.alerts.labels.team | default "cno" }}'
+            - 'service=grpc'
+          receiver: slack
+        - matchers:
+            - 'team={{ .Values.alerts.labels.team | default "cno" }}'
+            - 'service=k8s'
+          receiver: slack
+        - matchers:
+            - 'team={{ .Values.alerts.labels.team | default "cno" }}'
+            - 'service=operator'
+          receiver: slack
+
+    receivers:
+      - name: slack
+        slack_configs:
+          - send_resolved: {{ .Values.alerts.slack.sendResolved | default true }}
+            api_url_file: /etc/alertmanager/secrets/slack-webhook/url
+            channel: {{ .Values.alerts.slack.channel | default "#observability" | quote }}
+            username: {{ .Values.alerts.slack.username | default "Alertmanager" | quote }}
+            title: '{{`[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }} ({{ .CommonLabels.severity }})`}}'
+            text: '{{`{{ range .Alerts -}}
+*{{ .Annotations.summary }}*
+{{ .Annotations.description }}
+labels: {{ .Labels }}
+{{ end }}`}}'
+{{- end }}
