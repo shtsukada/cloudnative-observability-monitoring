@@ -1,0 +1,40 @@
+{{- if and .Values.networkPolicy.enabled .Values.networkPolicy.selectors.otelcol }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: monitoring-np-otelcol
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    {{- toYaml .Values.networkPolicy.selectors.otelcol | nindent 4 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    {{- $p := .Values.networkPolicy.ports }}
+    {{- range .Values.networkPolicy.otelcol.allowFromNamespaces }}
+    - from:
+        - namespaceSelector:
+            {{- toYaml . | nindent 12 }}
+      ports:
+        - protocol: TCP
+          port: {{ $p.otlpGrpc }}
+        - protocol: TCP
+          port: {{ $p.otlpHttp }}
+    {{- end }}
+  egress:
+    - to:
+        - podSelector:
+            {{- toYaml .Values.networkPolicy.selectors.tempo | nindent 12 }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.networkPolicy.ports.otlpGrpc }}
+        - protocol: TCP
+          port: {{ .Values.networkPolicy.ports.otlpHttp }}
+    - to:
+        - podSelector:
+            {{- toYaml .Values.networkPolicy.selectors.loki | nindent 12 }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.networkPolicy.ports.lokiHttp }}
+{{- end }}

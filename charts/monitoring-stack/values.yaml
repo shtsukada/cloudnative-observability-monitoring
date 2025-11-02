@@ -324,3 +324,67 @@ alerts:
     channel: "#observability"
     username: "Alertmanager"
     sendResolved: true
+
+networkPolicy:
+  enabled: true
+
+  namespaceSelector: {}
+
+  selectors:
+    prometheus:
+      matchLabels:
+        app.kubernetes.io/name: prometheus
+    alertmanager:
+      matchLabels:
+        app.kubernetes.io/name: alertmanager
+    grafana:
+      matchLabels:
+        app.kubernetes.io/name: grafana
+    loki:
+      matchLabels:
+        app.kubernetes.io/name: loki
+    tempo:
+      matchLabels:
+        app.kubernetes.io/name: tempo
+    otelcol:
+      matchLabels:
+        app.kubernetes.io/name: opentelemetry-collector
+    kubeStateMetrics:
+      matchLabels:
+        app.kubernetes.io/name: kube-state-metrics
+    nodeExporter:
+      matchLabels:
+        app.kubernetes.io/name: node-exporter
+
+  ports:
+    prometheusHttp: 9090
+    alertmanagerHttp: 9093
+    grafanaHttp: 3000
+    lokiHttp: 3100
+    tempoHttp: 3200
+    otlpGrpc: 4317
+    otlpHttp: 4318
+    kubeStateMetricsHttp: 8080
+    nodeExporterMetrics: 9100
+
+  otelcol:
+    allowFromNamespaces:
+      - {}
+
+  prometheus:
+    allowScrape:
+      kubeStateMetrics : true
+      nodeExporter : true
+      selfFederate : false
+      alertmanager : true
+
+subcharts:
+  kubePrometheusStack:
+    kubeControllerManager:
+      enabled: false
+    kubeScheduler:
+      enabled: false
+    kubeProxy:
+      enabled: false
+    kubeEtcd:
+      enabled: false
