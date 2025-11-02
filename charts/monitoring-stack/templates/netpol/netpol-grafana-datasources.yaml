@@ -1,0 +1,32 @@
+{{- if and .Values.networkPolicy.enabled .Values.networkPolicy.selectors.grafana }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: monitoring-np-grafana-egress
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    {{- toYaml .Values.networkPolicy.selectors.grafana | nindent 4 }}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - podSelector:
+            {{- toYaml .Values.networkPolicy.selectors.prometheus | nindent 12 }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.networkPolicy.ports.prometheusHttp }}
+
+    - to:
+        - podSelector:
+            {{- toYaml .Values.networkPolicy.selectors.loki | nindent 12 }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.networkPolicy.ports.lokiHttp }}
+
+    - to:
+        - podSelector:
+            {{- toYaml .Values.networkPolicy.selectors.tempo | nindent 12 }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.networkPolicy.ports.tempoHttp }}
+{{- end }}

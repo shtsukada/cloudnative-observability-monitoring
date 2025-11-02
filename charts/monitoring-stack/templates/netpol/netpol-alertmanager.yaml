@@ -1,0 +1,18 @@
+{{- if and .Values.networkPolicy.enabled .Values.networkPolicy.selectors.alertmanager }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: monitoring-np-alertmanager-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    {{- toYaml .Values.networkPolicy.selectors.alertmanager | nindent 4 }}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            {{- toYaml .Values.networkPolicy.selectors.prometheus | nindent 12 }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.networkPolicy.ports.alertmanagerHttp }}
+{{- end }}
