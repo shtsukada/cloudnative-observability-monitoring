@@ -17,6 +17,8 @@ kps:
     adminPassword: "admin"
   prometheus:
     enabled: true
+    serviceMonitor:
+      selfMonitor: true
   alertmanager:
     enabled: true
 
@@ -31,3 +33,33 @@ tempo:
 
 otelcol:
   replicaCount: 1
+
+networkPolicy:
+  enabled: true
+  kubeStateMetrics:
+    allowFromPrometheus: true
+  prometheus:
+    allowSelfScrape: true
+
+  ports:
+    kubeStateMetricsHttp: 8080
+    nodeExporterMetrics: 9100
+    prometheusHttp: 9090
+    alertmanagerHttp: 9093
+
+  selectors:
+    # Prometheus Pod のラベル（kube-prometheus-stack の実体に合わせる）
+    prometheus:
+      matchLabels:
+        app.kubernetes.io/name: prometheus
+        prometheus: kps-prometheus   # ← kubectl get po -n monitoring -l app.kubernetes.io/name=prometheus で要確認
+    kubeStateMetrics:
+      matchLabels:
+        app.kubernetes.io/name: kube-state-metrics
+    nodeExporter:
+      matchLabels:
+        app.kubernetes.io/name: prometheus-node-exporter
+    alertmanager:
+      matchLabels:
+        app.kubernetes.io/name: alertmanager
+        alertmanager: kps-alertmanager

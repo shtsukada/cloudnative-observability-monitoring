@@ -1,0 +1,48 @@
+name: nightly-kind-smoke
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 18 * * *"
+
+jobs:
+  e2e-smoke:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+      statuses: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up tools (kind/kubectl/helm/jq/curl)
+        run: |
+          set -eux
+          sudo apt-get update -y
+          sudo apt-get install -y jq curl
+          # kind
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-amd64
+          chmod +x ./kind && sudo mv ./kind /usr/local/bin/kind
+          # kubectl
+          curl -LO "https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+          # helm
+          curl -Ls https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Run E2E (kind + deploy + smoke)
+        env:
+          NAMESPACE: monitoring
+          RELEASE: cno-mon
+          VALUES: values-kind.yaml
+          KIND_CLUSTER: obs-smoke
+        run: |
+          set -eux
+          make -f e2e.mk e2e
+
+      - name: Upload smoke log
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-log
+          path: docs/smoke-sample.log
+          if-no-files-found: warn
