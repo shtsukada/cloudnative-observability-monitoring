@@ -2,8 +2,8 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {{ include "monitoring-stack.fullname" . }}-alertmanager-config
-  namespace: {{ .Release.Namespace }}
+  name: {{include "monitoring-stack.fullname" .}}-alertmanager-config
+  namespace: {{.Release.Namespace}}
   labels:
     {{- include "monitoring-stack.labels" . | nindent 4 }}
 type: Opaque
