@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "include-v-in-tag": true,
+  "separate-pull-requests": false,
+  "packages": {
+    ".":{
+      "release-type": "simple",
+      "package-name": "monitoring-stack",
+      "changelog-sections": [
+        {"type":"feat","section":"Features","hidden":false},
+        {"type":"fix","section":"Bug Fixes","hidden":false},
+        {"type":"perf","section":"Performance","hidden":false},
+        {"type":"revert","section":"Reverts","hidden":false},
+        {"type":"breaking","section":"Breaking Changes","hidden":false},
+        {"type":"docs","section":"Docs","hidden":true},
+        {"type":"ci","section":"CI","hidden":true},
+        {"type":"chore","section":"Chore","hidden":true},
+        {"type":"refactor","section":"Refactor","hidden":true}
+      ]
+    }
+  }
+}
