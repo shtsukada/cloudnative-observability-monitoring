@@ -18,8 +18,6 @@ Grafanaに最小セットのダッシュボード3枚を作成します。
 - Operator/Prometheus-Minimal(UID: cno-operator-min):Target Health（up）/ Rule Eval Duration p95 / Controller Reconcile Errors
 - gRPC App-Minimal(UID: cno-grpc-min):RPS / Latency p95,p99（grpc_server_handling_seconds_bucket）/ Error Rate / Status Codes
 
-
-
 ## 契約(Contract)
 - Namespace: `.Values.global.namespace` (固定 :`monitoring`)
 - 今後の拡張(後続ブランチで実装)
