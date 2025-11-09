@@ -32,8 +32,8 @@ jobs:
 
       - name: Login to GHCR (Helm OCI)
         run: |
-          echo "${{ github.token }}" | helm registry login ${{ env.REGISTRY }} \
-            --username ${{ github.repository_owner }} --password-stdin
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io \
+            -u "${{ github.actor }}" --password-stdin
 
       - name: Compute version from tag
         id: v

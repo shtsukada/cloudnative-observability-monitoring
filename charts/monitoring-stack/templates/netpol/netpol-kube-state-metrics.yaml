@@ -1,8 +1,3 @@
-{{- /*
-Netpol: kube-state-metrics ingress を Prometheus からのみ許可
-未定義でも落ちないように、すべての .Values アクセスを default/get で保護する
-*/ -}}
-
 {{- $np := default (dict) .Values.networkPolicy -}}
 {{- $ksm := default (dict) (get $np "kubeStateMetrics") -}}
 {{- $selectors := default (dict) (get $np "selectors") -}}
