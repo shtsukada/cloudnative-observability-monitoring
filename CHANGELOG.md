@@ -2,7 +2,6 @@
 
 ## [0.2.0](https://github.com/shtsukada/cloudnative-observability-monitoring/compare/monitoring-stack-v0.1.0...monitoring-stack-v0.2.0) (2025-11-09)
 
-
 ### Features
 
 * **alerts-min:** 最小構成のアラートセットをmonitoring-stack(Umbrella)に追加 ([c94ebf5](https://github.com/shtsukada/cloudnative-observability-monitoring/commit/c94ebf5500a965ff1b898743b28c3778501c0087))

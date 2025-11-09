@@ -1,4 +1,20 @@
-{{- if and .Values.networkPolicy.enabled .Values.networkPolicy.kubeStateMetrics.allowFromPrometheus }}
+{{- /*
+Netpol: kube-state-metrics ingress を Prometheus からのみ許可
+未定義でも落ちないように、すべての .Values アクセスを default/get で保護する
+*/ -}}
+
+{{- $np := default (dict) .Values.networkPolicy -}}
+{{- $ksm := default (dict) (get $np "kubeStateMetrics") -}}
+{{- $selectors := default (dict) (get $np "selectors") -}}
+{{- $ports := default (dict) (get $np "ports") -}}
+
+{{- $npEnabled := default false (get $np "enabled") -}}
+{{- $allowFromProm := default false (get $ksm "allowFromPrometheus") -}}
+{{- $selKsm := default (dict) (get $selectors "kubeStateMetrics") -}}
+{{- $selProm := default (dict) (get $selectors "prometheus") -}}
+{{- $portKsm := default 8080 (get $ports "kubeStateMetricsHttp") -}}
+
+{{- if and $npEnabled $allowFromProm }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -6,13 +22,13 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   podSelector:
-    {{- toYaml .Values.networkPolicy.selectors.kubeStateMetrics | nindent 4 }}
+    {{- toYaml $selKsm | nindent 4 }}
   policyTypes: [Ingress]
   ingress:
     - from:
         - podSelector:
-            {{- toYaml .Values.networkPolicy.selectors.prometheus | nindent 12 }}
+            {{- toYaml $selProm | nindent 12 }}
       ports:
         - protocol: TCP
-          port: {{ .Values.networkPolicy.ports.kubeStateMetricsHttp }}
+          port: {{ $portKsm }}
 {{- end }}

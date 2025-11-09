@@ -39,6 +39,9 @@ jobs:
         id: v
         run: echo "val=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
+      - name: Helm dependency build
+        run: helm dependency build charts/monitoring-stack
+
       - name: Helm lint & template (sanity)
         run: |
           helm lint charts/${{ env.CHART_NAME }}
