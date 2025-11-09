@@ -1,0 +1,43 @@
+name: supply-chain-verify
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "27 3 * * *"
+
+permissions:
+  contents: read
+  id-token: write
+  packages: read
+
+env:
+  OCI_REF: ghcr.io/${{ github.repository_owner }}/charts/monitoring-stack
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set GH_TOKEN for gh cli
+        run: echo "GH_TOKEN=${{ github.token }}" >> $GITHUB_ENV
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Verify latest release signature (keyless)
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: |
+          TAG=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' | sed 's/^v//')
+          echo "Verifying chart tag: $TAG"
+          cosign verify "${{ env.OCI_REF }}:${TAG}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            --certificate-identity-regexp "https://github.com/${{ github.repository }}/*"
+
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0.17.7
+
+      - name: SBOM presence check
+        run: |
+          mkdir -p dist
+          gh release download --pattern '*.sbom.spdx.json' --dir dist
+          test -s dist/*.sbom.spdx.json

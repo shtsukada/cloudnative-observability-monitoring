@@ -1,0 +1,86 @@
+name: helm-publish-oci
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+  id-token: write
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: ${{ github.repository_owner }}
+  CHART_NAME: monitoring-stack
+  OCI_REPO: ghcr.io/${{ github.repository_owner }}/charts/monitoring-stack
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.15.2
+
+      - name: Login to GHCR (Helm OCI)
+        run: |
+          echo "${{ github.token }}" | helm registry login ${{ env.REGISTRY }} \
+            --username ${{ github.repository_owner }} --password-stdin
+
+      - name: Compute version from tag
+        id: v
+        run: echo "val=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Helm lint & template (sanity)
+        run: |
+          helm lint charts/${{ env.CHART_NAME }}
+          helm template smoke charts/${{ env.CHART_NAME }} >/dev/null
+
+      - name: Package chart (version from tag)
+        id: pkg
+        run: |
+          mkdir -p dist
+          helm package charts/${{ env.CHART_NAME }} \
+            --version "${{ steps.v.outputs.val }}" \
+            --destination dist
+          echo "chart_tgz=$(ls dist/${{ env.CHART_NAME }}-*.tgz)" >> "$GITHUB_OUTPUT"
+
+      - name: Push to OCI (ghcr.io/<org>/charts/monitoring-stack:X.Y.Z)
+        run: |
+          helm push "${{ steps.pkg.outputs.chart_tgz }}" "oci://${{ env.REGISTRY }}/${{ env.OWNER }}/charts"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Cosign sign (keyless via OIDC)
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: |
+          REF="${{ env.OCI_REPO }}:${{ steps.v.outputs.val }}"
+          cosign sign --yes "$REF"
+
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0.17.7
+
+      - name: Generate SBOM (SPDX-JSON) for chart archive
+        id: sbom
+        run: |
+          syft packages "file:${{ steps.pkg.outputs.chart_tgz }}" -o spdx-json > "dist/${{ env.CHART_NAME }}-${{ steps.v.outputs.val }}.sbom.spdx.json"
+          echo "sbom_path=dist/${{ env.CHART_NAME }}-${{ steps.v.outputs.val }}.sbom.spdx.json" >> "$GITHUB_OUTPUT"
+
+      - name: Upload release assets (.tgz & SBOM)
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ steps.pkg.outputs.chart_tgz }}
+            ${{ steps.sbom.outputs.sbom_path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
