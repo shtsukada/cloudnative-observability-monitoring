@@ -41,7 +41,7 @@ jobs:
           make -f e2e.mk e2e
 
       - name: Upload smoke log
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: smoke-log
           path: docs/smoke-sample.log
