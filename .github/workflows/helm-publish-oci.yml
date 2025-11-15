@@ -78,7 +78,7 @@ jobs:
           cosign sign --yes "$REF"
 
       - name: Install syft
-        uses: anchore/sbom-action/download-syft@v0.17.7
+        uses: anchore/sbom-action/download-syft@v0.20.9
 
       - name: Generate SBOM (SPDX-JSON) for chart archive
         id: sbom

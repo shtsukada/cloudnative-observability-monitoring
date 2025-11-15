@@ -34,7 +34,7 @@ jobs:
             --certificate-identity-regexp "https://github.com/${{ github.repository }}/*"
 
       - name: Install syft
-        uses: anchore/sbom-action/download-syft@v0.17.7
+        uses: anchore/sbom-action/download-syft@v0.20.9
 
       - name: SBOM presence check
         run: |
