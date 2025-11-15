@@ -1,8 +1,8 @@
 name: nightly-kind-smoke
 on:
   workflow_dispatch: {}
-  schedule:
-    - cron: "0 18 * * *"
+  # schedule:
+  #   - cron: "0 18 * * *"
 
 jobs:
   e2e-smoke:

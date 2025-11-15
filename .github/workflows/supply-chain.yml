@@ -2,8 +2,8 @@ name: supply-chain-verify
 
 on:
   workflow_dispatch: {}
-  schedule:
-    - cron: "27 3 * * *"
+  # schedule:
+  #   - cron: "27 3 * * *"
 
 permissions:
   contents: read
